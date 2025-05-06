@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Добро пожаловать на сайт отзывов о ресторанах!</h1>
+    <p>Здесь вы можете добавлять, просматривать и оценивать рестораны.</p>
+
+
+    <h2>Список ресторанов</h2>
+    <ul class="list-group">
+        {% for restaurant in restaurants %}
+            <li class="list-group-item">
+                <strong>{{ restaurant.name }}</strong><br>
+                Адрес: {{ restaurant.address }}<br>
+                <a href="{{ url_for('view_restaurant', restaurant_name=restaurant.name) }}" class="btn btn-primary btn-sm mt-2">Посмотреть</a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

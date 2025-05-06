@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+
+{% block title %}{{ restaurant.name }}{% endblock %}
+
+
+{% block content %}
+<h1>{{ restaurant.name }}</h1>
+<p><strong>Adrese:</strong> {{ restaurant.address }}</p>
+<p><strong>Apraksts:</strong> {{ restaurant.description }}</p>
+
+
+<h2 class="mt-4">Atsauksmes</h2>
+{% if reviews %}
+    <ul class="list-group">
+        {% for review in reviews %}
+            <li class="list-group-item">
+                <strong>Vērtējums:</strong> {{ review.rating }} / 5<br>
+                <strong>Komentārs:</strong> {{ review.comment }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Nav atsauksmju.</p>
+{% endif %}
+
+
+<a href="{{ url_for('add_review', restaurant_name=restaurant.name) }}" class="btn btn-primary mt-3">Pievienot Atsauksmi</a>
+{% endblock %}
