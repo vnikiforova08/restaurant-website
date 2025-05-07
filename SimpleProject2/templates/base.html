@@ -49,6 +49,10 @@
     {% endblock %}
 </div>
 
+<audio controls autoplay loop hidden>
+    <source src="{{ url_for('static', filename='background.mp3') }}" type="audio/mpeg">
+    Jūsu pārlūkprogramma neatbalsta audio atskaņošanu.
+</audio>
 
 </body>
 </html>

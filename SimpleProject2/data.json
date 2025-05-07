@@ -1,0 +1,17 @@
+{
+    "users": [],
+    "restaurants": [
+        {
+            "name": "Ganbei",
+            "address": "Vaidavas iela",
+            "description": "Ļoti labs noskaņojums"
+        },
+        {
+            "name": "Vairāk saules",
+            "address": "Stirnu iela 25",
+            "description": "Ļoti skaisti un garšīgi!!!!"
+        }
+    ],
+    "reviews": [],
+    "images": []
+}
