@@ -2,8 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash, mak
 import os
 import json
 
-
-# JSONDB klases definīcija
 class JSONDB:
     def __init__(self, filename):
         self.filename = filename
@@ -27,6 +25,12 @@ class JSONDB:
 
     def get_restaurants(self):
         return self.data['restaurants']
+
+    def add_restaurant(self, restaurant):
+        new_id = max((r['id'] for r in self.data['restaurants']), default=0) + 1
+        restaurant['id'] = new_id
+        self.data['restaurants'].append(restaurant)
+        self.save_data()
 
     def get_reviews(self):
         return self.data['reviews']
@@ -53,43 +57,19 @@ class JSONDB:
     def add_image(self, image):
         self.data['images'].append(image)
         self.save_data()
-        
-# JSONDB klases gadījuma izveide
+
+
 db = JSONDB('data.json')
-
-
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
 
-# Datu struktūra restorānu un atsauksmju glabāšanai
-restaurants = []
-reviews = {}
+@app.route('/')
+def index():
+    restaurants = db.get_restaurants()
+    return render_template('index.html', restaurants=restaurants)
 
 
-DATA_FILE = 'data.json'
-
-
-# Notiek datu ielāde
-def load_data():
-    global restaurants, reviews
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            restaurants = data.get('restaurants', [])
-            reviews = data.get('reviews', {})
-
-
-# Datu saglabāšana
-def save_data():
-    with open(DATA_FILE, 'w', encoding='utf-8') as f:
-        json.dump({'restaurants': restaurants, 'reviews': reviews}, f, ensure_ascii=False, indent=4)
-
-
-load_data()
-
-
-# Pievienojiet jaunu restorāna lapu
 @app.route('/add_restaurant', methods=['GET', 'POST'])
 def add_restaurant():
     if request.method == 'POST':
@@ -97,102 +77,67 @@ def add_restaurant():
         address = request.form['address']
         description = request.form['description']
 
-
         if not name or not address:
             flash('Lūdzu, aizpildiet visus laukus.')
             return redirect(url_for('add_restaurant'))
 
-
         db.add_restaurant({'name': name, 'address': address, 'description': description})
-        db.save_data()
         flash(f'Restorāns {name} ir pievienots!')
         return redirect(url_for('index'))
-
 
     return render_template('add_restaurant.html')
 
 
-# Lapa, lai parādītu visus restorānus
-@app.route('/')
-def index():
-    restaurants = db.get_restaurants()
-    return render_template('index.html', restaurants=restaurants)
-
-
-# Lapa atsauksmes pievienošanai
-@app.route('/add_review/<restaurant_name>', methods=['GET','POST'])
+@app.route('/add_review/<restaurant_name>', methods=['GET', 'POST'])
 def add_review(restaurant_name):
+    restaurant = next((r for r in db.get_restaurants() if r['name'] == restaurant_name), None)
+    if not restaurant:
+        return "Restorāns nav atrasts", 404
+
     if request.method == 'POST':
         rating = request.form['rating']
         comment = request.form['comment']
-
 
         if not comment or not rating:
             flash('Lūdzu, aizpildiet abus laukus.')
             return redirect(url_for('add_review', restaurant_name=restaurant_name))
 
-
-        db.add_review(restaurant_name, {'rating': rating, 'comment': comment})
-        db.save_data()
+        user_id = 1  # Dummy user_id — replace with real authentication later
+        db.add_review(user_id, restaurant['id'], rating, comment)
         flash(f'Atsauksme par {restaurant_name} ir pievienota!')
         return redirect(url_for('view_restaurant', restaurant_name=restaurant_name))
 
-
     return render_template('add_review.html', restaurant_name=restaurant_name)
+
 
 @app.route('/restaurant/<restaurant_name>')
 def view_restaurant(restaurant_name):
-    restaurants = db.get_restaurants()
-    restaurant = next((r for r in restaurants if r['name'] == restaurant_name), None)
+    restaurant = next((r for r in db.get_restaurants() if r['name'] == restaurant_name), None)
     if restaurant is None:
-        return "Restaurant not found", 404
+        return "Restorāns nav atrasts", 404
 
-    all_reviews = db.get_reviews()
-    restaurant_reviews = [r for r in all_reviews if r['restaurant_id'] == restaurant['id']]
+    restaurant_reviews = db.get_reviews_for_restaurant(restaurant['id'])
 
     resp = make_response(render_template('restaurant.html', restaurant=restaurant, reviews=restaurant_reviews))
     resp.set_cookie('last_visited', restaurant_name)
     return resp
 
-# Lapa viena restorāna un tā atsauksmju apskatei
-# @app.route('/restaurant/<restaurant_name>')
-# def view_restaurant(restaurant_name):
-#     # Atrodiet restorānu pēc nosaukuma
-#     restaurant = next((r for r in restaurants if r['name'] == restaurant_name), None)
-#     restaurant_reviews = reviews.get(restaurant_name, [])
 
-
-#     # Ja restorāns netiek atrasts, atgrieziet kļūdu vai novirziet
-#     if restaurant is None:
-#         return "Restorāns nav atrasts", 404
-#     all_reviews = db.get_reviews()
-#     restaurant_reviews = [r for r in all_reviews if r['restaurant_id'] == restaurant['id']]
-
-#     resp = make_response(render_template('restaurant.html', restaurant=restaurant, reviews=restaurant_reviews))
-#     resp.set_cookie('last_visited', restaurant_name)
-#     return resp
-
-    # Mēs saglabājam informāciju par pēdējo apmeklēto restorānu sīkfailā
-    # resp = make_response(render_template('restaurant.html', restaurant=restaurant, reviews=restaurant_reviews))
-    # resp.set_cookie('last_visited', restaurant_name)  # Pēdējā apmeklētā restorāna nosaukumu saglabājam sīkdatnē
-    # return resp
-
-
-# Lapa informācijas attēlošanai par restorānu un tā atsauksmēm
-# @app.route('/restaurant/<restaurant_name>')
-# def view_restaurant(restaurant_name):
-#     restaurant = next((r for r in db.get_restaurants() if r['name'] == restaurant_name), None)
-#     restaurant_reviews = db.get_reviews().get(restaurant_name, [])
-#     return render_template('restaurant.html', restaurant=restaurant, reviews=restaurant_reviews)
-
-
-# Visas atsauksmes
 @app.route('/all_reviews')
 def all_reviews():
+    restaurants = db.get_restaurants()
+    reviews = db.get_reviews()
     all_data = []
-    for name, revs in reviews.items():
-        for rev in revs:
-            all_data.append({'restaurant': name, 'rating': rev['rating'], 'comment': rev['comment']})
+
+    for review in reviews:
+        rest = next((r for r in restaurants if r['id'] == review['restaurant_id']), None)
+        if rest:
+            all_data.append({
+                'restaurant': rest['name'],
+                'rating': review['rating'],
+                'comment': review['comment']
+            })
+
     return render_template('all_reviews.html', reviews=all_data)
 
 
