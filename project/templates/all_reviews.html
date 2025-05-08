@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Visas atsauksmes</h1>
+
+
+    {% if reviews %}
+        <ul class="list-group">
+            {% for review in reviews %}
+                <li class="list-group-item">
+                    <strong>Restorāns:</strong> {{ review.restaurant }}<br>
+                    <strong>Vērtējums:</strong> {{ review.rating }} / 5<br>
+                    <strong>Komentārs:</strong> {{ review.comment }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Nav atsauksmju.</p>
+    {% endif %}
+</div>
+{% endblock %}

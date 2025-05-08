@@ -1,0 +1,46 @@
+{
+    "users": [
+        {
+            "name": "veronika",
+            "email": "nika.nikiforova08@gmail.com",
+            "password": "1234"
+        }
+    ],
+    "restaurants": [
+        {
+            "name": "ds",
+            "address": "sdf",
+            "description": "sfdsf",
+            "id": 1
+        },
+        {
+            "name": "sa",
+            "address": "DSA",
+            "description": "SDAD",
+            "id": 2
+        },
+        {
+            "name": "fd",
+            "address": "dfg",
+            "description": "dfg",
+            "id": 3
+        }
+    ],
+    "reviews": [
+        {
+            "id": 1,
+            "user_id": 1,
+            "restaurant_id": 1,
+            "rating": "5",
+            "comment": "dsf"
+        },
+        {
+            "id": 2,
+            "user_id": 1,
+            "restaurant_id": 1,
+            "rating": "3",
+            "comment": "TDSD"
+        }
+    ],
+    "images": []
+}
